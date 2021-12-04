@@ -1,5 +1,13 @@
 # create-svelte
 
+## 2.0.0-next.90
+
+### Patch Changes
+
+- Do not gitignore `.env.example` ([#2926](https://github.com/sveltejs/kit/pull/2926))
+
+* update to esbuild 0.13.15 and other dependency updates ([#2957](https://github.com/sveltejs/kit/pull/2957))
+
 ## 2.0.0-next.89
 
 ### Patch Changes
