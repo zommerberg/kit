@@ -82,7 +82,7 @@ export class Router {
 	}
 
 	init_listeners() {
-		if (history.state['sveltekit:index']) {
+		if (history.state['sveltekit:index'] >= 0) {
 			this.current_history_index = history.state['sveltekit:index'];
 		} else {
 			history.replaceState({ ...history.state, 'sveltekit:index': 0 }, '', location.href);
@@ -192,7 +192,6 @@ export class Router {
 				event.preventDefault();
 				return;
 			}
-			history.pushState({ 'sveltekit:index': ++this.current_history_index }, '', url.href);
 
 			const noscroll = a.hasAttribute('sveltekit:noscroll');
 
@@ -200,7 +199,7 @@ export class Router {
 			const i2 = location.href.indexOf('#');
 			const u1 = i1 >= 0 ? url_string.substring(0, i1) : url_string;
 			const u2 = i2 >= 0 ? location.href.substring(0, i2) : location.href;
-			history.pushState({}, '', url.href);
+			history.pushState({ 'sveltekit:index': ++this.current_history_index }, '', url.href);
 			if (u1 === u2) {
 				window.dispatchEvent(new HashChangeEvent('hashchange'));
 			}
