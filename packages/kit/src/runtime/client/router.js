@@ -78,10 +78,16 @@ export class Router {
 		// create initial history entry, so we can return here
 		history.replaceState(history.state || {}, '', location.href);
 		// keeping track of the last known location in order to prevent popstate event navigation if needed
-		this.last_known_location = location.href;
+		this.current_history_index = 0;
 	}
 
 	init_listeners() {
+		if (history.state['sveltekit:index']) {
+			this.current_history_index = history.state['sveltekit:index'];
+		} else {
+			history.replaceState({ ...history.state, 'sveltekit:index': 0 }, '', location.href);
+		}
+
 		if ('scrollRestoration' in history) {
 			history.scrollRestoration = 'manual';
 		}
@@ -186,6 +192,7 @@ export class Router {
 				event.preventDefault();
 				return;
 			}
+			history.pushState({ 'sveltekit:index': ++this.current_history_index }, '', url.href);
 
 			const noscroll = a.hasAttribute('sveltekit:noscroll');
 
@@ -207,8 +214,14 @@ export class Router {
 
 				const allow_navigation = dispatch_navigation_intent(url);
 				if (!allow_navigation) {
-					// "disabling" the back/forward button click by pushing the last known location
-					history.pushState({}, '', this.last_known_location);
+					// "disabling" the back/forward button click by pushing the last known history id
+					if (history.state['sveltekit:index'] >= 0) {
+						history.go(this.current_history_index - event.state['sveltekit:index']);
+					} else {
+						console.log('SVELTEKIT INDEX IS ZERO');
+						history.go(-1);
+					}
+
 					return;
 				}
 
@@ -258,6 +271,9 @@ export class Router {
 		if (!allow_navigation) return;
 
 		if (this.enabled && this.owns(url)) {
+			if (!replaceState) {
+				state['sveltekit:index'] = ++this.current_history_index;
+			}
 			history[replaceState ? 'replaceState' : 'pushState'](state, '', href);
 			return this._navigate(url, noscroll ? scroll_state() : null, keepfocus, chain, url.hash);
 		}
@@ -333,7 +349,6 @@ export class Router {
 	 * @param {string} [hash]
 	 */
 	async _navigate(url, scroll, keepfocus, chain, hash) {
-		this.last_known_location = url.href;
 		const info = this.parse(url);
 
 		if (!info) {
