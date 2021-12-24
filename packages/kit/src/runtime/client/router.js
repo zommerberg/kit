@@ -210,22 +210,18 @@ export class Router {
 		addEventListener('popstate', (event) => {
 			if (event.state && this.enabled) {
 				const url = new URL(location.href);
+				const delta = this.current_history_index - event.state['sveltekit:index'];
 
-				const allow_navigation = dispatch_navigation_intent(url);
-				if (!allow_navigation) {
-					// "disabling" the back/forward button click by pushing the last known history id
-					if (history.state['sveltekit:index'] >= 0) {
-						history.go(this.current_history_index - event.state['sveltekit:index']);
-					} else {
-						console.log('SVELTEKIT INDEX IS <= 0');
-						history.go(-1);
+				if (delta !== 0) {
+					const allow_navigation = dispatch_navigation_intent(url);
+					if (!allow_navigation) {
+						// "disabling" the back/forward button click by pushing the last known history id
+						history.go(delta);
+						return;
 					}
-
-					return;
-				} else {
-					this.current_history_index = event.state['sveltekit:index'];
 				}
 
+				this.current_history_index = event.state['sveltekit:index'];
 				this._navigate(url, event.state['sveltekit:scroll'], false, []);
 			}
 		});
